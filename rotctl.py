@@ -6,12 +6,13 @@ from datetime import datetime
 rot_speed = 4.8
 
 # Assumes rotator has 12 memory buttons labeled A-L
-buttons = ["A","B","C","D","E","F","G","H","I","J","K","L"]
+buttons = ["L","A","B","C","D","E","F","G","H","I","J","K","L"]
 
 # Assumes rotator button A represents 30°, B 60° etc; 
 # Each setting is made up of (min degrees, max degrees, direction)
 # N Has two list elements as it resets the degrees back to 0
 rot_pos = [
+      (  0,     15,  0),
       ( 15.001, 45, 30),
       ( 45.001, 75, 60),
       ( 75.001,105, 90),
@@ -23,8 +24,7 @@ rot_pos = [
       (255.001,285,270),
       (285.001,315,300),
       (315.001,345,330),
-      (345.001,361,  0),
-      (  0,     15,  0)
+      (345.001,361,  0)
       ]
 
 # Initialise rotator
@@ -77,8 +77,6 @@ while True:
 
                   for i, p in enumerate(rot_pos):
                       if p[0] <= float(cmd[1]) <= p[1]:
-                          # Final button N has 2 rot_pos elements
-                          if i == 12: i = 11
                           print("[{}] >>>>>> Press button {}".format(time,buttons[i]))
                           
                           # Start movement countdown
