@@ -1,8 +1,13 @@
 import socket
 import sys
 from datetime import datetime
+import os
+import subprocess
 
 def main():
+    
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    sendir = os.path.join(dirname, 'sendir.sh')
     
     # The number of degrees of rotation per second
     rot_speed = 4.8
@@ -80,6 +85,7 @@ def main():
                       for i, p in enumerate(rot_pos):
                           if p[0] <= float(cmd[1]) <= p[1]:
                               print("[{}] >>>>>> Press button {}".format(time,buttons[i]))
+                              subprocess.run(["/bin/sh", sendir, buttons[i]]) 
                               
                               # Start movement countdown
                               if target_pos != float(p[2]):
