@@ -39,6 +39,7 @@ def main():
     target_pos = current_pos = start_pos = 0.00
     time = datetime.now().strftime("%H:%M:%S")
     print("[{}] >>>>>> Press button Initial".format(time))
+    subprocess.run(["/bin/sh", sendir, "L"]) 
     
     # Create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
