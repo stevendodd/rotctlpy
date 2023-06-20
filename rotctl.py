@@ -6,6 +6,7 @@ import subprocess
 
 def main():
     
+    # The shell script to send IR commands
     dirname = os.path.dirname(os.path.abspath(__file__))
     sendir = os.path.join(dirname, 'sendir.sh')
     
@@ -13,11 +14,11 @@ def main():
     rot_speed = 4.8
     
     # Assumes rotator has 12 memory buttons labeled A-L
-    buttons = ["L","A","B","C","D","E","F","G","H","I","J","K","L"]
+    buttons = ["L","A","B","C","D","E","F","G","H","I","J","U","L"]
     
     # Assumes rotator button A represents 30°, B 60° etc; 
     # Each setting is made up of (min degrees, max degrees, direction)
-    # N Has two list elements as it resets the degrees back to 0
+    # L Has two list elements as it resets the degrees back to 0
     rot_pos = [
           (  0,     15,  0),
           ( 15.001, 45, 30),
@@ -45,7 +46,7 @@ def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     # Bind the socket to the address given on the command line
-    server_address = ("192.168.1.10", 65432)
+    server_address = ("0.0.0.0", 65432)
     sock.bind(server_address)
     sock.listen(1)
     
