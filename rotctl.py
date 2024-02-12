@@ -40,7 +40,11 @@ def main():
     target_pos = current_pos = start_pos = 0.00
     time = datetime.now().strftime("%H:%M:%S")
     print("[{}] >>>>>> Press button Initial".format(time))
-    subprocess.run(["/bin/sh", sendir, "L"]) 
+    
+    if os.name == "nt":
+        subprocess.run(["sendir.bat", "L"])
+    else:
+        subprocess.run(["/bin/sh", sendir, "L"]) 
     
     # Create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -86,14 +90,17 @@ def main():
     
                       for i, p in enumerate(rot_pos):
                           if p[0] <= float(cmd[1]) <= p[1]:
-                              print("[{}] >>>>>> Press button {}".format(time,buttons[i]))
-                              subprocess.run(["/bin/sh", sendir, buttons[i]]) 
-                              
-                              # Start movement countdown
-                              if target_pos != float(p[2]):
-                                  start_time = datetime.now() 
-                                  start_pos = current_pos
-                                  target_pos = float(p[2])
+                            print("[{}] >>>>>> Press button {}".format(time,buttons[i]))
+                            if os.name == "nt":
+                                subprocess.run(["sendir.bat", buttons[i]])
+                            else:
+                                subprocess.run(["/bin/sh", sendir, buttons[i]])
+                            
+                            # Start movement countdown
+                            if target_pos != float(p[2]):
+                                start_time = datetime.now() 
+                                start_pos = current_pos
+                                target_pos = float(p[2])
                                   
                       # Send OK
                       connection.sendall(b"RPRT 0\n")
