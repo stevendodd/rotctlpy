@@ -1,0 +1,128 @@
+type: vertical-stack
+cards:
+  - type: entity
+    entity: sensor.antenna_heading
+    icon: mdi:sun-compass
+  - type: picture-elements
+    elements:
+      - type: service-button
+        style:
+          text-align: center
+          top: 6.5%
+          left: 50%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_l
+      - type: service-button
+        style:
+          text-align: center
+          top: 12%
+          left: 72%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_a
+      - type: service-button
+        style:
+          text-align: center
+          top: 28%
+          left: 88%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_b
+      - type: service-button
+        style:
+          text-align: center
+          top: 50%
+          left: 94%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_c
+      - type: service-button
+        style:
+          text-align: center
+          top: 72%
+          left: 88%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_d
+      - type: service-button
+        style:
+          text-align: center
+          top: 88%
+          left: 72%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_e
+      - type: service-button
+        style:
+          text-align: center
+          top: 93.8%
+          left: 50%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_f
+      - type: service-button
+        style:
+          text-align: center
+          top: 88%
+          left: 28%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_g
+      - type: service-button
+        style:
+          text-align: center
+          top: 72%
+          left: 12%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_h
+      - type: service-button
+        style:
+          text-align: center
+          top: 50%
+          left: 6.5%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_i
+      - type: service-button
+        style:
+          text-align: center
+          top: 28%
+          left: 12%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_j
+      - type: service-button
+        style:
+          text-align: center
+          top: 12%
+          left: 28%
+          height: 40px
+          width: 40px
+          border-radius: 50% 50%
+          background-color: rgba(0, 0, 0, 0.3)
+        service: rest_command.rot_u
+    image: http://stevendodd.ddns.net/images/compass.jpg

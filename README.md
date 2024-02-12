@@ -7,8 +7,8 @@
 * Script sendir.sh to interface with IRC such as [Flirc USB](https://flirc.com/more/flirc-usb)
 
 
-<img src="./BlockDiagram.png" width=400>
+<img src="./images/BlockDiagram.png" width=400>
 <P>
-<img src="./RotatorConfig.png" width=400>
+<img src="./images/RotatorConfig.png" width=400>
 <p> 
-<img src="./Rotator.jpg" width=800>
+<img src="./images/Rotator.jpg" width=800>

@@ -1,0 +1,6 @@
+{
+	"server": "my ip address",
+	"username": "my ssh user",
+	"password": "my password",
+	"scriptPath": "/home/pi/rotctlpy/sendir.sh"
+}

@@ -1,0 +1,42 @@
+sensor:
+  - platform: command_line
+    name: Antenna Heading
+    command: "ssh pi@192.168.1.10 cat /home/pi/rotctlpy/currentHeading.txt"
+
+rest_command:
+  rot_a:
+    url: "http://services.meteor:5005/A"
+    method: get
+  rot_b:
+    url: "http://services.meteor:5005/B"
+    method: get
+  rot_c:
+    url: "http://services.meteor:5005/C"
+    method: get
+  rot_d:
+    url: "http://services.meteor:5005/D"
+    method: get
+  rot_e:
+    url: "http://services.meteor:5005/E"
+    method: get
+  rot_f:
+    url: "http://services.meteor:5005/F"
+    method: get
+  rot_g:
+    url: "http://services.meteor:5005/G"
+    method: get
+  rot_h:
+    url: "http://services.meteor:5005/H"
+    method: get
+  rot_i:
+    url: "http://services.meteor:5005/I"
+    method: get
+  rot_j:
+    url: "http://services.meteor:5005/J"
+    method: get
+  rot_u:
+    url: "http://services.meteor:5005/U"
+    method: get
+  rot_l:
+    url: "http://services.meteor:5005/L"
+    method: get
