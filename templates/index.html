@@ -1,0 +1,162 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Rotctld Web Interface</title>
+
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/jquery-3.3.1.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+    <script type="text/javascript" charset="utf-8">
+
+        var updateSetpoint;
+        var updateSetpointFixed;
+        var haltRotator;
+        var homeRotator;
+
+        $(document).ready(function() {
+            // Use the 'update_status' namespace for all of our traffic
+            namespace = '/update_status';
+
+            // Connect to the Socket.IO server.
+            // The connection URL has the following format:
+            //     http[s]://<domain>:<port>[/<namespace>]
+            var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+
+            // Handle a position update.
+            socket.on('position_event', function(msg) {
+                var _az = msg.azimuth.toFixed(1);
+                var _el = msg.elevation.toFixed(1);
+
+                var _text = "<h3>Current Position:  <small>" + _az + ' , ' + _el + "</small></h3>";
+
+                $('#current_position').html(_text);
+            });
+
+            // Handle a setpoint update.
+            socket.on('setpoint_event', function(msg) {
+                var _az = msg.azimuth.toFixed(1);
+                var _el = msg.elevation.toFixed(1);
+
+                var _text = "<h3>Setpoint:  <small>" + _az + ' , ' + _el + "</small></h3>";
+
+                $('#setpoint').html(_text);
+            });    
+
+            // Button callback functions. Fairly self explanatory.
+            updateSetpoint = function updateSetpoint(motor_val, delta_val){
+                socket.emit('update_setpoint', {delta: delta_val, motor: motor_val});
+            };
+
+            updateSetpointFixed = function updateSetpointFixed(motor_val, fixed_val){
+                socket.emit('update_setpoint', {fixed: fixed_val, motor: motor_val});
+            };            
+            
+            haltRotator = function haltRotator(){
+                socket.emit('halt_rotator', {});
+            }
+
+            homeRotator = function homeRotator(){
+                socket.emit('home_rotator', {});
+            }
+
+            // Tell the server we are connected and ready for data.
+            socket.on('connect', function() {
+                socket.emit('client_connected', {data: 'I\'m connected!'});
+                // This will cause the server to update us with the latest position and setpoint data.
+            });
+
+            // Request current rotator position every second. (Too much?)
+            window.setInterval(function () {
+                socket.emit('get_position',{});
+            }, 1000); 
+
+        });
+    </script>
+</head>
+<body>
+    <div id="autorx_header" class="m-1"><h2>Rotctld Web GUI</h2></div>
+    <div class="container-fluid m-1"> 
+        <div class="row">
+            <div class='col-12'>
+                <div id="current_position"><h3>Current Pos:</h3></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class='col-12'>
+                <div id="setpoint"><h3>Setpoint:</h3></div>
+            </div>
+        </div>
+		<br>
+        <div class="row">
+            <div id="connection" class='col-xs-2'>
+            	{% if connected %}
+            	<img src="static/images/bulb-on.png" width=30> Connected
+            	{% else %}
+                <img src="static/images/bulb-off.png" width=30> Not Connected
+                {% endif %}
+            </div>
+        </div>   
+        <div class="row">
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_minus30" onclick="updateSetpoint('azimuth', -30)">AZ -30</button>
+            </div>
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_plus30" onclick="updateSetpoint('azimuth', 30)">AZ +30</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_30" onclick="updateSetpointFixed('azimuth', 30)">A</button>
+            </div>
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_60" onclick="updateSetpointFixed('azimuth', 60)">B</button>
+            </div>
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_90" onclick="updateSetpointFixed('azimuth', 90)">C</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_120" onclick="updateSetpointFixed('azimuth', 120)">D</button>
+            </div>
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_150" onclick="updateSetpointFixed('azimuth', 150)">E</button>
+            </div>
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_180" onclick="updateSetpointFixed('azimuth', 180)">F</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_210" onclick="updateSetpointFixed('azimuth', 210)">G</button>
+            </div>
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_240" onclick="updateSetpointFixed('azimuth', 240)">H</button>
+            </div>
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_270" onclick="updateSetpointFixed('azimuth', 270)">I</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_300" onclick="updateSetpointFixed('azimuth', 300)">J</button>
+            </div>
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_330" onclick="updateSetpointFixed('azimuth', 330)">U</button>
+            </div>
+            <div class='col-xs-2'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="az_0" onclick="updateSetpointFixed('azimuth', 0)">L</button>
+            </div>
+        </div> 
+        <div class="row">
+            <div class='col-xs-6'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="halt" onclick="haltRotator()">Initialise</button>
+            </div>
+            <div class='col-xs-6'>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="el_minus5" onclick="homeRotator()">HOME</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
