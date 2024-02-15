@@ -10,8 +10,9 @@
 
         var updateSetpoint;
         var updateSetpointFixed;
-        var haltRotator;
+        var initialRotator;
         var homeRotator;
+        var disconnectRotator;
 
         $(document).ready(function() {
             // Use the 'update_status' namespace for all of our traffic
@@ -22,7 +23,11 @@
             //     http[s]://<domain>:<port>[/<namespace>]
             var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
-
+            // Handle disconnection
+            socket.on('disconnect', function() {
+            	$('#connection').html("<span class=\"badge rounded-pill bg-danger\">Not Connected</span> (Restart server with -g option)");
+            });
+            
             // Handle a position update.
             socket.on('position_event', function(msg) {
                 var _az = msg.azimuth.toFixed(1);
@@ -43,6 +48,15 @@
                 $('#setpoint').html(_text);
             });    
 
+            // Handle a connection update.
+            socket.on('connection_event', function(msg) {
+            	var _text = "<span class=\"badge rounded-pill bg-danger\">Not Connected</span> (Restart server with -g option)";
+				if (new String(msg).valueOf() == "connected") {
+					_text = "<span class=\"badge rounded-pill bg-success\">Connected</span><button type=\"button\" class=\"btn btn-link\" id=\"halt\" onclick=\"disconnectRotator()\">Disconnect</button>";
+				}
+                $('#connection').html(_text);
+            });             
+            
             // Button callback functions. Fairly self explanatory.
             updateSetpoint = function updateSetpoint(motor_val, delta_val){
                 socket.emit('update_setpoint', {delta: delta_val, motor: motor_val});
@@ -50,10 +64,14 @@
 
             updateSetpointFixed = function updateSetpointFixed(motor_val, fixed_val){
                 socket.emit('update_setpoint', {fixed: fixed_val, motor: motor_val});
-            };            
+            };           
             
-            haltRotator = function haltRotator(){
-                socket.emit('halt_rotator', {});
+            disconnectRotator = function disconnectRotator(){
+                socket.emit('disconnect_rotator', {});
+            }
+            
+            initialRotator = function initialRotator(){
+                socket.emit('initial_rotator', {});
             }
 
             homeRotator = function homeRotator(){
@@ -71,12 +89,27 @@
                 socket.emit('get_position',{});
             }, 1000); 
 
+            // Request connected
+            window.setInterval(function () {
+                socket.emit('get_connection',{});
+            }, 5000);             
+            
         });
     </script>
 </head>
 <body>
     <div id="autorx_header" class="m-1"><h2>Rotctld Web GUI</h2></div>
     <div class="container-fluid m-1"> 
+        <div class="row">
+            <div id="connection" class='col-xs-2'>
+            	{% if connected %}
+            	<span class="badge rounded-pill bg-success">Connected</span><button type="button" class="btn btn-link" id="halt" onclick="disconnectRotator()">Disconnect</button>
+            	
+            	{% else %}
+                <span class="badge rounded-pill bg-danger">Not Connected</span> (Restart server with -g option)
+                {% endif %}
+            </div>
+        </div>  
         <div class="row">
             <div class='col-12'>
                 <div id="current_position"><h3>Current Pos:</h3></div>
@@ -88,15 +121,6 @@
             </div>
         </div>
 		<br>
-        <div class="row">
-            <div id="connection" class='col-xs-2'>
-            	{% if connected %}
-            	<img src="static/images/bulb-on.png" width=30> Connected
-            	{% else %}
-                <img src="static/images/bulb-off.png" width=30> Not Connected
-                {% endif %}
-            </div>
-        </div>   
         <div class="row">
             <div class='col-xs-2'>
                 <button type="button" class="btn btn-primary btn-lg m-1" id="az_minus30" onclick="updateSetpoint('azimuth', -30)">AZ -30</button>
@@ -151,7 +175,7 @@
         </div> 
         <div class="row">
             <div class='col-xs-6'>
-                <button type="button" class="btn btn-primary btn-lg m-1" id="halt" onclick="haltRotator()">Initialise</button>
+                <button type="button" class="btn btn-primary btn-lg m-1" id="halt" onclick="initialRotator()">Initialise</button>
             </div>
             <div class='col-xs-6'>
                 <button type="button" class="btn btn-primary btn-lg m-1" id="el_minus5" onclick="homeRotator()">HOME</button>
