@@ -1,12 +1,10 @@
 # hamlib rotctld for infrared rotator control
 
-* A python implementation of rotctld that by drefault listens on port 65432 and accepts rotctl commands
+* A python implementation of rotctld that by default listens on port 65432 and accepts rotctl commands
 * Can be used with tools such as [GPredict](http://gpredict.oz9aec.net/) 
 * TV rotators like the [Sharman AR 600](https://moonrakeronline.com/sharman-ar-600-vhf-uhf-antenna-rotator) 
 * Threshold for rotation should be set to > 15 degrees
 * Invokes a script 'sendir' to interface with IRC such as the [Flirc USB](https://flirc.com/more/flirc-usb). Assumes Flirc binaries (irtools or Flirc_utils.exe) are added to the system PATH environment. Modify this script to output alternative commands.
-* <a href="https://github.com/stevendodd/rotctlpy/releases">v0.3</a> or greater contains lots of updates for Windows users
-* <a href="https://github.com/stevendodd/rotctlpy/releases">v0.4</a> Refactor to remove WebGUI submodule and include by default. Use -g option to connect the WebGUI to the rotctldpy server.
 * WebGUI originally written by Mark Jessop [rotctld-web-gui](https://github.com/darksidelemm/rotctld-web-gui); upgraded and modified 
 
 ### Block Diagram

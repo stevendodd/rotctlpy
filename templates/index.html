@@ -13,6 +13,7 @@
         var initialRotator;
         var homeRotator;
         var disconnectRotator;
+        var connectRotator;
 
         $(document).ready(function() {
             // Use the 'update_status' namespace for all of our traffic
@@ -25,7 +26,7 @@
 
             // Handle disconnection
             socket.on('disconnect', function() {
-            	$('#connection').html("<span class=\"badge rounded-pill bg-danger\">Not Connected</span> (Restart server with -g option)");
+            	$('#connection').html("<span class=\"badge rounded-pill bg-danger\">Not Connected</span><button type=\"button\" class=\"btn btn-link\" id=\"halt\" onclick=\"connectRotator()\">Connect</button>");
             });
             
             // Handle a position update.
@@ -50,7 +51,7 @@
 
             // Handle a connection update.
             socket.on('connection_event', function(msg) {
-            	var _text = "<span class=\"badge rounded-pill bg-danger\">Not Connected</span> (Restart server with -g option)";
+            	var _text = "<span class=\"badge rounded-pill bg-danger\">Not Connected</span><button type=\"button\" class=\"btn btn-link\" id=\"halt\" onclick=\"connectRotator()\">Connect</button>";
 				if (new String(msg).valueOf() == "connected") {
 					_text = "<span class=\"badge rounded-pill bg-success\">Connected</span><button type=\"button\" class=\"btn btn-link\" id=\"halt\" onclick=\"disconnectRotator()\">Disconnect</button>";
 				}
@@ -65,6 +66,10 @@
             updateSetpointFixed = function updateSetpointFixed(motor_val, fixed_val){
                 socket.emit('update_setpoint', {fixed: fixed_val, motor: motor_val});
             };           
+            
+            connectRotator = function connectRotator(){
+                socket.emit('connect_rotator', {});
+            }
             
             disconnectRotator = function disconnectRotator(){
                 socket.emit('disconnect_rotator', {});
@@ -106,7 +111,7 @@
             	<span class="badge rounded-pill bg-success">Connected</span><button type="button" class="btn btn-link" id="halt" onclick="disconnectRotator()">Disconnect</button>
             	
             	{% else %}
-                <span class="badge rounded-pill bg-danger">Not Connected</span> (Restart server with -g option)
+                <span class="badge rounded-pill bg-danger">Not Connected</span><button type="button" class="btn btn-link" id="start" onclick="connectRotator()">Connect</button>
                 {% endif %}
             </div>
         </div>  

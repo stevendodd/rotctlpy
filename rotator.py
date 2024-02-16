@@ -37,6 +37,11 @@ app.jinja_env.auto_reload = True
 # SocketIO instance
 socketio = SocketIO(app)
 
+# Rotator singleton objects.
+rotator = None
+rotctldpy = None
+args = None
+
 # Global setpoint and position variables
 current_position = {'azimuth': 0.0, 'elevation': 0.0}
 current_setpoint = {'azimuth': 0.0, 'elevation': 0.0}
@@ -70,136 +75,160 @@ rot_pos = [
 # The shell script to send IR commands
 dirname = os.path.dirname(os.path.abspath(__file__))
 sendir = os.path.join(dirname, 'sendir.sh')
-    
-def rotctldpy(host,port,stop):
-    # Initialise rotator
-    start_time = datetime.now()
-    target_pos = current_pos = start_pos = 0.00
-    app.logger.info(">>>>>> Press button Initial")
-    
-    if os.name == "nt":
-        subprocess.run(["sendir.bat", "INITIAL"])
-    else:
-        subprocess.run(["/bin/sh", sendir, "INITIAL"]) 
-    
-    while True:
-        if stop():
-            break
-        
-        try:
-            # Create a TCP/IP socket
-            sockRotctldpy = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            
-            # Bind the socket to the address given on the command line
-            server_address = (host, port)
-            sockRotctldpy.bind(server_address)
-            sockRotctldpy.listen(1)
-    
-            connRotctldpy, client_address = sockRotctldpy.accept()
-            #connRotctldpy.settimeout(1)
-            app.logger.info('waiting for a connection')
-            
-            while True:
-                data = connRotctldpy.recv(16)
-                
-                if data:    
-                    # If we have asked the rotator to move calculate the current position
-                    if current_pos != target_pos:
-                        # How far has the rotator moved since we started
-                        t_diff = datetime.now() - start_time
-                        movement = t_diff.seconds * rot_speed
-                        diff = target_pos - start_pos
-                        
-                        # Update the current position
-                        if diff >= 0:
-                            current_pos = round(start_pos + movement, 2)
-                        else:
-                            current_pos = round(start_pos - movement, 2)
-                        
-                        # Has the rotator has arrived at the target position
-                        if abs(target_pos - current_pos) < rot_speed:
-                            current_pos = target_pos
-                            
-                    # Read data from antenna control
-                    cmd = data.decode("utf-8").strip().split(" ")
-                    
-                    # Received updated coordinates
-                    if cmd[0] == "P":
-                      app.logger.info("Setting Az: {} El: {}".format(cmd[1],cmd[2]) )
-    
-                      for i, p in enumerate(rot_pos):
-                          if p[1] <= float(cmd[1]) <= p[2]:
-                            app.logger.info(">>>>>> Press button {}".format(p[0]))
-                            if os.name == "nt":
-                                subprocess.run(["sendir.bat", p[0]])
-                            else:
-                                subprocess.run(["/bin/sh", sendir, p[0]])
-                            
-                            # Start movement countdown
-                            if target_pos != float(p[3]):
-                                start_time = datetime.now() 
-                                start_pos = current_pos
-                                target_pos = float(p[3])
-                                  
-                      # Send OK
-                      connRotctldpy.sendall(b"RPRT 0\n")
-                    
-                    # Received updated coordinates
-                    if cmd[0] == "INIT":
-                        app.logger.info("Received Initialise Request")
-    
-                        # Start movement countdown
-                        if target_pos != float(0.0):
-                            start_time = datetime.now() 
-                            start_pos = current_pos
-                            target_pos = float(0.0)
-                                      
-                        # Send OK
-                        connRotctldpy.sendall(b"RPRT 0\n")
-                      
-                    # Received get_pos request
-                    if cmd[0] == "p":
-                      resp = "{}\n15.000000".format(current_pos)
-                      app.logger.debug("Sending position: {}".format(current_pos))
-                      
-                      # Send current position
-                      connRotctldpy.sendall(resp.encode('utf-8'))
-                      
-                    # Received stop request
-                    if cmd[0] == "S":
-                      # Send OK
-                      connRotctldpy.sendall(b"RPRT 0\n")
-
-                    if cmd[0] == "_":
-                      connRotctldpy.sendall(b"rotctrld by steve\n")
- 
-                else:
-                    if stop():
-                        connRotctldpy.close()
-                        
-                    break
-                        
-        except OSError:
-            app.logger.warning("rotctldpy server not available; retry")
-            time.sleep(1)
-       
-        finally:
-            if connRotctldpy is not None:
-                connRotctldpy.close()
-        
-        sockRotctldpy.close()
-
-
-def sendCommand(command):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(2)
-    sock.connect((args.host,args.port))
-    sock.sendall(bytes(command+'\n', 'utf-8'))
-    sock.close()
 
 
 class ROTCTLD(object):
-    """ rotctld (hamlib) communication class """
+    """ rotctld (hamlib) server class """ 
+    
+    def __init__(self, host="0.0.0.0", port=65432):
+        self.host = host
+        self.port = port
+        self.stop_thread = False
+        self.rotctldpyThread = threading.Thread(target=self._run, args=(lambda: self.stop_thread,))
+        self.rotctldpyThread.start()
+
+
+    def send_command(self,command):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        sock.connect((self.host,self.port))
+        sock.sendall(bytes(command+'\n', 'utf-8'))
+        sock.close()
+
+
+    def get_heading(self):
+        return([self.target_pos,self.current_pos])
+
+
+    def _run(self,stop):
+        start_time = datetime.now()
+        self.target_pos = self.current_pos = start_pos = 0.00
+        app.logger.info(">>>>>> Press button Initial")
+        
+        if os.name == "nt":
+            subprocess.run(["sendir.bat", "INITIAL"])
+        else:
+            subprocess.run(["/bin/sh", sendir, "INITIAL"]) 
+        
+        while True:
+            if stop():
+                break
+            
+            try:
+                # Create a TCP/IP socket
+                sockRotctldpy = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                
+                # Bind the socket to the address given on the command line
+                server_address = (self.host, self.port)
+                sockRotctldpy.bind(server_address)
+                sockRotctldpy.listen(1)
+        
+                connRotctldpy, client_address = sockRotctldpy.accept()
+                #connRotctldpy.settimeout(1)
+                app.logger.info('waiting for a connection')
+                
+                while True:
+                    data = connRotctldpy.recv(16)
+                    
+                    if data:    
+                        # If we have asked the rotator to move calculate the current position
+                        if self.current_pos != self.target_pos:
+                            # How far has the rotator moved since we started
+                            t_diff = datetime.now() - start_time
+                            movement = t_diff.seconds * rot_speed
+                            diff = self.target_pos - start_pos
+                            
+                            # Update the current position
+                            if diff >= 0:
+                                self.current_pos = round(start_pos + movement, 2)
+                            else:
+                                self.current_pos = round(start_pos - movement, 2)
+                            
+                            # Has the rotator has arrived at the target position
+                            if abs(self.target_pos - self.current_pos) < rot_speed:
+                                self.current_pos = self.target_pos
+                                
+                        # Read data from antenna control
+                        cmd = data.decode("utf-8").strip().split(" ")
+                        
+                        # Received updated coordinates
+                        if cmd[0] == "P":
+                          app.logger.info("Setting Az: {} El: {}".format(cmd[1],cmd[2]) )
+        
+                          for i, p in enumerate(rot_pos):
+                              if p[1] <= float(cmd[1]) <= p[2]:
+                                app.logger.info(">>>>>> Press button {}".format(p[0]))
+                                if os.name == "nt":
+                                    subprocess.run(["sendir.bat", p[0]])
+                                else:
+                                    subprocess.run(["/bin/sh", sendir, p[0]])
+                                
+                                # Start movement countdown
+                                if self.target_pos != float(p[3]):
+                                    start_time = datetime.now() 
+                                    start_pos = self.current_pos
+                                    self.target_pos = float(p[3])
+                                      
+                          # Send OK
+                          connRotctldpy.sendall(b"RPRT 0\n")
+                        
+                        # Received updated coordinates
+                        if cmd[0] == "INIT":
+                            app.logger.info("Received Initialise Request")
+        
+                            # Start movement countdown
+                            if self.target_pos != float(0.0):
+                                start_time = datetime.now() 
+                                start_pos = self.current_pos
+                                self.target_pos = float(0.0)
+                                          
+                            # Send OK
+                            connRotctldpy.sendall(b"RPRT 0\n")
+                          
+                        # Received get_pos request
+                        if cmd[0] == "p":
+                          resp = "{}\n15.000000".format(self.current_pos)
+                          app.logger.debug("Sending position: {}".format(self.current_pos))
+                          
+                          # Send current position
+                          connRotctldpy.sendall(resp.encode('utf-8'))
+                          
+                        # Received stop request
+                        if cmd[0] == "S":
+                          # Send OK
+                          connRotctldpy.sendall(b"RPRT 0\n")
+    
+                        if cmd[0] == "_":
+                          connRotctldpy.sendall(b"rotctrld by steve\n")
+                                                
+                        if stop():
+                            connRotctldpy.close()
+     
+                    else:
+                        if stop():
+                            connRotctldpy.close()
+                            
+                        break
+                            
+            except OSError:
+                app.logger.warning("rotctldpy server not available; retry")
+                time.sleep(1)
+           
+            finally:
+                if connRotctldpy is not None:
+                    connRotctldpy.close()
+            
+            sockRotctldpy.close()
+
+
+    def close(self):
+        self.stop_thread = True
+        self.send_command('exit')
+        self.rotctldpyThread.join()
+    
+
+class ROTCTL(object):
+    """ rotctl (hamlib) communication class """
     # Note: This is a massive hack. 
 
     def __init__(self, hostname, port=4533, poll_rate=5, timeout=5, az_180 = False):
@@ -209,6 +238,7 @@ class ROTCTLD(object):
 
         self.hostname = hostname
         self.port = port
+        
 
 
     def connect(self):
@@ -289,26 +319,17 @@ class ROTCTLD(object):
     	self.send_command('S')
 
 
-# Rotator singleton object.
-rotator = None
-rotctldpyThread = None
-args = None
-stop_thread = False
 
-def createRotctld(gui):
+def createRotctl():
     global rotctldpyThread, rotator, stop_thread
     try:
-        stop_thread = False
-        rotctldpyThread = threading.Thread(target=rotctldpy, args=(args.host,args.port,lambda: stop_thread))
-        rotctldpyThread.start()
-        if gui:
-            time.sleep(5)
-            rotator = ROTCTLD(hostname=args.host, port=args.port)
-            _rot_model = rotator.connect()
-            app.logger.info("Connected to rotctld - Rotator Model: " + str(_rot_model))
+        time.sleep(1)
+        rotator = ROTCTL(hostname=args.host, port=args.port)
+        _rot_model = rotator.connect()
+        app.logger.info("Connected to rotctld - Rotator Model: " + str(_rot_model))
 
     except Exception as e:
-        app.logger.info("Could not connect to rotctld server- %s" % str(e))
+        app.logger.error("Could not connect to rotctld server- %s" % str(e))
         sys.exit(1)
         
     return(rotator)
@@ -324,6 +345,26 @@ def flask_index():
         connected = True
     
     return flask.render_template('index.html', connected=connected)
+
+
+@app.route("/<heading>",methods = ['GET'])
+def set_heading(heading):
+    for p in rot_pos:
+        if heading == p[0]:
+            if rotator is None:
+                if os.name == "nt":
+                    subprocess.run(["sendir.bat", heading])
+                else:
+                    subprocess.run(["/bin/sh", sendir, heading])                
+            else:
+                current_setpoint['azimuth'] = p[3]
+                current_setpoint['elevation'] = HOME_POS[1]
+                rotator.set_azel(current_setpoint['azimuth'], current_setpoint['elevation'])
+                update_client_display({})
+            
+            position = rotctldpy.get_heading()
+            return("Target Heading: {}\nCurrent Heading: {}\nOK".format(position[0], position[1]))
+    return("Unknown Heading")
 
 
 def flask_emit_event(event_name="none", data={}):
@@ -384,6 +425,13 @@ def disconnect_rotator(data):
     global rotator
     rotator.close()
     rotator = None
+
+
+@socketio.on('connect_rotator', namespace='/update_status')
+def connect_rotator(data):
+    global rotator
+    rotator = createRotctl()
+    
     
 @socketio.on('initial_rotator', namespace='/update_status')
 def initial_rotator(data):
@@ -398,6 +446,7 @@ def initial_rotator(data):
             subprocess.run(["sendir.bat", "INITIAL"])
         else:
             subprocess.run(["/bin/sh", sendir, "INITIAL"])       
+        
 
 @socketio.on('get_connection', namespace='/update_status')
 def read_connection(data):
@@ -419,22 +468,6 @@ def read_position(data):
     		current_position['elevation'] = _el
     		update_client_display({})
 
-@app.route("/<heading>",methods = ['GET'])
-def set_heading(heading):
-    for p in rot_pos:
-        if heading == p[0]:
-            if rotator is None:
-                if os.name == "nt":
-                    subprocess.run(["sendir.bat", heading])
-                else:
-                    subprocess.run(["/bin/sh", sendir, heading])                
-            else:
-                current_setpoint['azimuth'] = p[3]
-                current_setpoint['elevation'] = HOME_POS[1]
-                rotator.set_azel(current_setpoint['azimuth'], current_setpoint['elevation'])
-                update_client_display({})
-            return("OK")
-    return("Unknown Heading")
 
 if __name__ == "__main__":
     import argparse
@@ -446,15 +479,20 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=65432, help="Rotctld server port. (Default: 65432)")
     args = parser.parse_args()
 
-    # Try and connect to the rotator.
-    rotator = createRotctld(args.GUI)
-
-    # Run the Flask app, which will block until CTRL-C'd.
-    socketio.run(app, host='0.0.0.0', port=args.listen_port)
-
-    # Close the rotator connection.
-    if rotator is not None:
-        rotator.close()
-        
-    stop_thread = True
-    rotctldpyThread.join()
+    try:
+        # Start the rotctld server
+        rotctldpy = ROTCTLD(host=args.host, port=args.port)
+    
+        # Try and connect to the rotator.
+        if args.GUI:
+            rotator = createRotctl()
+    
+        # Run the Flask app, which will block until CTRL-C'd.
+        socketio.run(app, host='0.0.0.0', port=args.listen_port)
+    
+    finally:
+        # Close the rotator connection.
+        if rotator is not None:
+            rotator.close()
+            
+        rotctldpy.close()
