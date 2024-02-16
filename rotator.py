@@ -323,7 +323,7 @@ class ROTCTL(object):
 def createRotctl():
     global rotctldpyThread, rotator, stop_thread
     try:
-        time.sleep(1)
+        time.sleep(3)
         rotator = ROTCTL(hostname=args.host, port=args.port)
         _rot_model = rotator.connect()
         app.logger.info("Connected to rotctld - Rotator Model: " + str(_rot_model))
