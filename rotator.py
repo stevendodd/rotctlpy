@@ -50,7 +50,7 @@ current_setpoint = {'azimuth': 0.0, 'elevation': 0.0}
 HOME_POS = [0.0, 15.0]
 
 # The number of degrees of rotation per second
-rot_speed = 4.8
+rot_speed = 5
 
 # Assumes rotator has 12 memory buttons labeled A-L
 # Assumes rotator button A represents 30°, B 60° etc; 
@@ -89,13 +89,18 @@ class ROTCTLD(object):
 
 
     def send_command(self,command):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(2)
-        sock.connect((self.host,self.port))
-        sock.sendall(bytes(command+'\n', 'utf-8'))
-        sock.close()
-
-
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            sock.connect((self.host,self.port))
+            sock.sendall(bytes(command+'\n', 'utf-8'))            
+            resp = self.sock.recv(1024)
+            sock.close()
+            return(resp.decode("utf-8"))
+        except:
+            return None
+        
+        
     def get_heading(self):
         return([self.target_pos,self.current_pos])
 
