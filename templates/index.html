@@ -14,10 +14,12 @@
         var homeRotator;
         var disconnectRotator;
         var connectRotator;
+        var timer;
 
         $(document).ready(function() {
             // Use the 'update_status' namespace for all of our traffic
             namespace = '/update_status';
+            timer = 0
 
             // Connect to the Socket.IO server.
             // The connection URL has the following format:
@@ -60,11 +62,17 @@
             
             // Button callback functions. Fairly self explanatory.
             updateSetpoint = function updateSetpoint(motor_val, delta_val){
-                socket.emit('update_setpoint', {delta: delta_val, motor: motor_val});
+            	if (timer == 0) {
+            		timer = 3;
+                	socket.emit('update_setpoint', {delta: delta_val, motor: motor_val});
+            	}
             };
 
             updateSetpointFixed = function updateSetpointFixed(motor_val, fixed_val){
-                socket.emit('update_setpoint', {fixed: fixed_val, motor: motor_val});
+            	if (timer == 0) {
+            		timer = 3
+                	socket.emit('update_setpoint', {fixed: fixed_val, motor: motor_val});
+            	}
             };           
             
             connectRotator = function connectRotator(){
@@ -76,11 +84,17 @@
             }
             
             initialRotator = function initialRotator(){
-                socket.emit('initial_rotator', {});
+            	if (timer == 0) {
+            		timer = 60;
+                	socket.emit('initial_rotator', {});
+            	}
             }
 
             homeRotator = function homeRotator(){
-                socket.emit('home_rotator', {});
+            	if (timer == 0) {
+            		timer = 60;
+                	socket.emit('home_rotator', {});
+            	}
             }
 
             // Tell the server we are connected and ready for data.
@@ -91,13 +105,24 @@
 
             // Request current rotator position every second. (Too much?)
             window.setInterval(function () {
-                socket.emit('get_position',{});
+            	if (timer == 0) {
+                	socket.emit('get_position',{});
+            	}
             }, 1000); 
 
             // Request connected
             window.setInterval(function () {
                 socket.emit('get_connection',{});
-            }, 5000);             
+            }, 5000);
+            
+            window.setInterval(function () {
+            	if (timer > 0) {
+                	timer--;
+                	$('#timer').html("<span class=\"badge rounded-pill bg-danger\">Busy "  + timer + "</span>");
+            	} else {
+            		$('#timer').html("")
+            	}
+            }, 1000); 
             
         });
     </script>
@@ -106,7 +131,7 @@
     <div id="autorx_header" class="m-1"><h2>Rotctld Web GUI</h2></div>
     <div class="container-fluid m-1"> 
         <div class="row">
-            <div id="connection" class='col-xs-2'>
+            <div id="connection" class='col-xs-2 align-self-center'>
             	{% if connected %}
             	<span class="badge rounded-pill bg-success">Connected</span><button type="button" class="btn btn-link" id="halt" onclick="disconnectRotator()">Disconnect</button>
             	
@@ -114,6 +139,7 @@
                 <span class="badge rounded-pill bg-danger">Not Connected</span><button type="button" class="btn btn-link" id="start" onclick="connectRotator()">Connect</button>
                 {% endif %}
             </div>
+            <div id="timer" class='col-xs-2 align-self-center'></div>
         </div>  
         <div class="row">
             <div class='col-12'>

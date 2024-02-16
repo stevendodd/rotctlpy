@@ -50,7 +50,7 @@ current_setpoint = {'azimuth': 0.0, 'elevation': 0.0}
 HOME_POS = [0.0, 15.0]
 
 # The number of degrees of rotation per second
-rot_speed = 5
+rot_speed = 6
 
 # Assumes rotator has 12 memory buttons labeled A-L
 # Assumes rotator button A represents 30°, B 60° etc; 
@@ -108,6 +108,7 @@ class ROTCTLD(object):
     def _run(self,stop):
         start_time = datetime.now()
         self.target_pos = self.current_pos = start_pos = 0.00
+        direction = 0
         app.logger.info(">>>>>> Press button Initial")
         
         if os.name == "nt":
@@ -150,7 +151,9 @@ class ROTCTLD(object):
                                 self.current_pos = round(start_pos - movement, 2)
                             
                             # Has the rotator has arrived at the target position
-                            if abs(self.target_pos - self.current_pos) < rot_speed:
+                            if direction == 0 and self.current_pos - self.target_pos <= 0:
+                                self.current_pos = self.target_pos
+                            elif direction == 1 and self.target_pos - self.current_pos <= 0:
                                 self.current_pos = self.target_pos
                                 
                         # Read data from antenna control
@@ -173,6 +176,9 @@ class ROTCTLD(object):
                                     start_time = datetime.now() 
                                     start_pos = self.current_pos
                                     self.target_pos = float(p[3])
+                                    direction = 0
+                                    if start_pos < self.target_pos:
+                                        direction = 1
                                       
                           # Send OK
                           connRotctldpy.sendall(b"RPRT 0\n")
