@@ -94,6 +94,7 @@ class ROTCTLD(object):
         start_time = datetime.now()
         self.target_pos = self.current_pos = start_pos = 0.00
         direction = 0
+        connRotctldpy = None
         app.logger.info(">>>>>> Press button Home")    
         sendIrCommand("L") 
         
@@ -110,7 +111,6 @@ class ROTCTLD(object):
                 sockRotctldpy.bind(server_address)
                 sockRotctldpy.listen(1)
                 
-                connRotctldpy = None
                 connRotctldpy, client_address = sockRotctldpy.accept()
                 #connRotctldpy.settimeout(1)
                 app.logger.info('waiting for a connection')
