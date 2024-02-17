@@ -12,21 +12,6 @@ import subprocess
 import threading
 from logging.config import dictConfig
 
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-})
 
 # Define Flask Application, and allow automatic reloading of templates for dev
 app = flask.Flask(__name__)
@@ -109,12 +94,8 @@ class ROTCTLD(object):
         start_time = datetime.now()
         self.target_pos = self.current_pos = start_pos = 0.00
         direction = 0
-        app.logger.info(">>>>>> Press button Home")
-        
-        if os.name == "nt":
-            subprocess.run(["sendir.bat", "L"])
-        else:
-            subprocess.run(["/bin/sh", sendir, "L"]) 
+        app.logger.info(">>>>>> Press button Home")    
+        sendIrCommand("L") 
         
         while True:
             if stop():
@@ -167,10 +148,7 @@ class ROTCTLD(object):
                           for i, p in enumerate(rot_pos):
                               if p[1] <= float(cmd[1]) <= p[2]:
                                 app.logger.info(">>>>>> Press button {}".format(p[0]))
-                                if os.name == "nt":
-                                    subprocess.run(["sendir.bat", p[0]])
-                                else:
-                                    subprocess.run(["/bin/sh", sendir, p[0]])
+                                sendIrCommand(p[0]) 
                                 
                                 # Start movement countdown
                                 if self.target_pos != float(p[3]):
@@ -331,6 +309,19 @@ class ROTCTL(object):
     	self.send_command('S')
 
 
+def sendIrCommand(command):
+    p = None
+    if os.name == "nt":
+        p = subprocess.run(["sendir.bat", command],capture_output=True, text=True)
+    else:
+        p = subprocess.run(["/bin/sh", sendir, command],capture_output=True, text=True)
+        
+    if p.stdout:     
+        app.logger.debeg(p.stdout)
+        
+    if p.stderr:
+        app.logger.error(p.stderr)
+
 
 def createRotctl():
     global rotctldpyThread, rotator, stop_thread
@@ -364,10 +355,7 @@ def set_heading(heading):
     for p in rot_pos:
         if heading == p[0]:
             if rotator is None:
-                if os.name == "nt":
-                    subprocess.run(["sendir.bat", heading])
-                else:
-                    subprocess.run(["/bin/sh", sendir, heading])                
+                sendIrCommand(heading)              
             else:
                 current_setpoint['azimuth'] = p[3]
                 current_setpoint['elevation'] = HOME_POS[1]
@@ -417,7 +405,7 @@ def update_azimuth_setpoint(data):
                 app.logger.info("Elevation Setpoint Fixed:" + str(data['fixed']))
                 current_setpoint['elevation'] = data['fixed']
     	else:
-    		app.logger.info("Unknown!")
+    		app.logger.error("Unknown!")
     
     	rotator.set_azel(current_setpoint['azimuth'], current_setpoint['elevation'])
     	update_client_display({})
@@ -453,12 +441,8 @@ def initial_rotator(data):
         current_setpoint['elevation'] = HOME_POS[1]
         rotator.initialise()
         update_client_display({})
-        
-        if os.name == "nt":
-            subprocess.run(["sendir.bat", "INITIAL"])
-        else:
-            subprocess.run(["/bin/sh", sendir, "INITIAL"])       
-        
+        sendIrCommand("INITIAL")
+
 
 @socketio.on('get_connection', namespace='/update_status')
 def read_connection(data):
@@ -489,7 +473,28 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--gui", action='store_true',help="Connect WebGUI - warning do not use in parallel with other software to control rotator")
     parser.add_argument("-s", '--host', type=str, default='localhost', help="Rotctld server host. (Default: localhost)")
     parser.add_argument("-p", '--port', type=int, default=65432, help="Rotctld server port. (Default: 65432)")
+    parser.add_argument("-d", "--debug", action='store_true',help="Enable DEBUG log level")
     args = parser.parse_args()
+
+    logLevel = "INFO"
+    if args.debug:
+        logLevel = "DEBUG"
+        
+    dictConfig({
+        'version': 1,
+        'formatters': {'default': {
+            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+        }},
+        'handlers': {'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        }},
+        'root': {
+            'level': logLevel,
+            'handlers': ['wsgi']
+        }
+    })
 
     try:
         # Start the rotctld server
