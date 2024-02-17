@@ -485,8 +485,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--listen_port",default=5001,help="Port to run Web Server on. (Default: 5001)")
-    parser.add_argument("-g", "--GUI", action='store_true',help="Connect WebGUI - warning do not use in parallel with other software to control rotator")
-    parser.add_argument('--host', type=str, default='0.0.0.0', help="Rotctld server host. (Default: localhost)")
+    parser.add_argument("-g", "--gui", action='store_true',help="Connect WebGUI - warning do not use in parallel with other software to control rotator")
+    parser.add_argument('--host', type=str, default='localhost', help="Rotctld server host. (Default: localhost)")
     parser.add_argument('--port', type=int, default=65432, help="Rotctld server port. (Default: 65432)")
     args = parser.parse_args()
 
@@ -495,7 +495,7 @@ if __name__ == "__main__":
         rotctldpy = ROTCTLD(host=args.host, port=args.port)
     
         # Try and connect to the rotator.
-        if args.GUI:
+        if args.gui:
             rotator = createRotctl()
     
         # Run the Flask app, which will block until CTRL-C'd.
