@@ -317,7 +317,7 @@ def sendIrCommand(command):
         p = subprocess.run(["/bin/sh", sendir, command],capture_output=True, text=True)
         
     if p.stdout:     
-        app.logger.debeg(p.stdout)
+        app.logger.debug(p.stdout)
         
     if p.stderr:
         app.logger.error(p.stderr)
