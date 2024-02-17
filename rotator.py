@@ -128,7 +128,8 @@ class ROTCTLD(object):
                 server_address = (self.host, self.port)
                 sockRotctldpy.bind(server_address)
                 sockRotctldpy.listen(1)
-        
+                
+                connRotctldpy = None
                 connRotctldpy, client_address = sockRotctldpy.accept()
                 #connRotctldpy.settimeout(1)
                 app.logger.info('waiting for a connection')
