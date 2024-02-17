@@ -320,7 +320,10 @@ def sendIrCommand(command):
         app.logger.debug(p.stdout)
         
     if p.stderr:
-        app.logger.error(p.stderr)
+        # Very annoying
+        ignoreError = "[E] fl_version_compare(281): Flirc iospirit found version: 4.9.7 0x1DE23EB8 [release]"
+        if p.stderr != ignoreError:
+            app.logger.error(p.stderr)
 
 
 def createRotctl():
