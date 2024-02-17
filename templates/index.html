@@ -85,14 +85,14 @@
             
             initialRotator = function initialRotator(){
             	if (timer == 0) {
-            		timer = 60;
+            		timer = 90;
                 	socket.emit('initial_rotator', {});
             	}
             }
 
             homeRotator = function homeRotator(){
             	if (timer == 0) {
-            		timer = 60;
+            		timer = 3;
                 	socket.emit('home_rotator', {});
             	}
             }

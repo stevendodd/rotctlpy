@@ -109,12 +109,12 @@ class ROTCTLD(object):
         start_time = datetime.now()
         self.target_pos = self.current_pos = start_pos = 0.00
         direction = 0
-        app.logger.info(">>>>>> Press button Initial")
+        app.logger.info(">>>>>> Press button Home")
         
         if os.name == "nt":
-            subprocess.run(["sendir.bat", "INITIAL"])
+            subprocess.run(["sendir.bat", "L"])
         else:
-            subprocess.run(["/bin/sh", sendir, "INITIAL"]) 
+            subprocess.run(["/bin/sh", sendir, "L"]) 
         
         while True:
             if stop():
