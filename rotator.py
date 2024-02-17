@@ -259,7 +259,7 @@ class ROTCTL(object):
         if model == None:
             # Timeout!
             self.close()
-            raise Exception("Timeout!")
+            raise Exception("WebGUI: Timeout!")
         else:
             return model.decode("utf-8")
 
@@ -321,7 +321,7 @@ class ROTCTL(object):
             _current_elevation = float(response_split[1])
             return (_current_azimuth, _current_elevation)
         except:
-            app.logger.warning("Could not parse position: %s" % response)
+            app.logger.warning("WebGUI: could not parse position: %s" % response)
             return (None,None)
 
 
@@ -337,10 +337,10 @@ def createRotctl():
         time.sleep(3)
         rotator = ROTCTL(hostname=args.host, port=args.port)
         _rot_model = rotator.connect()
-        app.logger.info("Connected to rotctld - Rotator Model: " + str(_rot_model))
+        app.logger.info("WebGUI: connected to rotctld - Rotator Model: " + str(_rot_model))
 
     except Exception as e:
-        app.logger.error("Could not connect to rotctld server- %s" % str(e))
+        app.logger.error("WebGUI: could not connect to rotctld server- %s" % str(e))
         sys.exit(1)
         
     return(rotator)
@@ -486,8 +486,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--listen_port",default=5001,help="Port to run Web Server on. (Default: 5001)")
     parser.add_argument("-g", "--gui", action='store_true',help="Connect WebGUI - warning do not use in parallel with other software to control rotator")
-    parser.add_argument('--host', type=str, default='localhost', help="Rotctld server host. (Default: localhost)")
-    parser.add_argument('--port', type=int, default=65432, help="Rotctld server port. (Default: 65432)")
+    parser.add_argument("-s", '--host', type=str, default='localhost', help="Rotctld server host. (Default: localhost)")
+    parser.add_argument("-p", '--port', type=int, default=65432, help="Rotctld server port. (Default: 65432)")
     args = parser.parse_args()
 
     try:

@@ -46,15 +46,15 @@ In addition a webserver is started and available at `http://localhost:5001` This
 
 ```
 192.168.1.10: $ python rotator.py --help
-usage: rotator.py [-h] [-l LISTEN_PORT] [-g] [--host HOST] [--port PORT]
+usage: rotator.py [-h] [-l LISTEN_PORT] [-g] [-s HOST] [-p PORT]
 
 optional arguments:
   -h, --help            show this help message and exit
   -l LISTEN_PORT, --listen_port LISTEN_PORT
                         Port to run Web Server on. (Default: 5001)
-  -g, --GUI             Connect WebGUI - warning do not use in parallel with other software to control rotator
-  --host HOST           Rotctld server host. (Default: localhost)
-  --port PORT           Rotctld server port. (Default: 65432)
+  -g, --gui             Connect WebGUI - warning do not use in parallel with other software to control rotator
+  -s HOST, --host HOST  Rotctld server host. (Default: localhost)
+  -p PORT, --port PORT  Rotctld server port. (Default: 65432)
   ```
   
 ### Home Assistant Integration
