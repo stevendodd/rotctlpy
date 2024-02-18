@@ -28,7 +28,7 @@ Connect UI with -g flag on startup. Default address `http://localhost:5001`
 
 ### Installing
 
-Requires python3
+Requires python3.7 or greater
 
 ```
 pip install -r requirements.txt
@@ -46,7 +46,7 @@ In addition a webserver is started and available at `http://localhost:5001` This
 
 ```
 192.168.1.10: $ python rotator.py --help
-usage: rotator.py [-h] [-l LISTEN_PORT] [-g] [-s HOST] [-p PORT]
+usage: rotator.py [-h] [-l LISTEN_PORT] [-g] [-s HOST] [-p PORT] [-d]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -55,6 +55,7 @@ optional arguments:
   -g, --gui             Connect WebGUI - warning do not use in parallel with other software to control rotator
   -s HOST, --host HOST  Rotctld server host. (Default: localhost)
   -p PORT, --port PORT  Rotctld server port. (Default: 65432)
+  -d, --debug           Enable DEBUG log level
   ```
   
 ### Home Assistant Integration

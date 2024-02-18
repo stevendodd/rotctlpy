@@ -2,11 +2,10 @@ import json
 import flask
 from flask_socketio import SocketIO
 import time
+from datetime import datetime
 import socket
 import sys
-import datetime
-import sys
-from datetime import datetime
+import argparse
 import os
 import subprocess
 import threading
@@ -317,13 +316,13 @@ def sendIrCommand(command):
         p = subprocess.run(["/bin/sh", sendir, command],capture_output=True, text=True)
         
     if p.stdout:     
-        app.logger.debug(p.stdout)
+        app.logger.debug(p.stdout.strip())
         
     if p.stderr:
         # Very annoying
         ignoreError = "[E] fl_version_compare(281): Flirc iospirit found version: 4.9.7 0x1DE23EB8 [release]\n"
         if p.stderr != ignoreError:
-            app.logger.error(p.stderr)
+            app.logger.error(p.stderr.strip())
 
 
 def createRotctl():
@@ -469,7 +468,6 @@ def read_position(data):
 
 
 if __name__ == "__main__":
-    import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--listen_port",default=5001,help="Port to run Web Server on. (Default: 5001)")
