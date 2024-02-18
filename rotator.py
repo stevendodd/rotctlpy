@@ -317,9 +317,9 @@ def sendIrCommand(command):
         
     if p.stdout:
         # Very annoying
-        catchError = "device disconnected, can't run command\n"
-        if p.stdout == catchError:
-            app.logger.error(p.stdout.strip()) 
+        catchError = "device disconnected, can't run command"
+        if p.stdoutstrip() == catchError:
+            app.logger.error("Flirc " + p.stdout.strip()) 
             
         app.logger.debug(p.stdout.strip())
         
