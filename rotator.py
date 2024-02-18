@@ -315,11 +315,16 @@ def sendIrCommand(command):
     else:
         p = subprocess.run(["/bin/sh", sendir, command],capture_output=True, text=True)
         
-    if p.stdout:     
+    if p.stdout:
+        # Very annoying
+        catchError = "device disconnected, can't run command\n"
+        if p.stdout == catchError:
+            app.logger.error(p.stdout.strip()) 
+            
         app.logger.debug(p.stdout.strip())
         
     if p.stderr:
-        # Very annoying
+        # Very very annoying
         ignoreError = "[E] fl_version_compare(281): Flirc iospirit found version: 4.9.7 0x1DE23EB8 [release]\n"
         if p.stderr != ignoreError:
             app.logger.error(p.stderr.strip())
