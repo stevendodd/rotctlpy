@@ -201,7 +201,7 @@ class ROTCTLD(object):
                             
             except OSError:
                 app.logger.warning("rotctldpy server not available; retry")
-                time.sleep(1)
+                time.sleep(5)
            
             finally:
                 if connRotctldpy is not None:
