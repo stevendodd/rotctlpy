@@ -384,8 +384,10 @@ def flask_emit_event(event_name="none", data={}):
 @socketio.on('client_connected', namespace='/update_status')
 def update_client_display(data):
     if rotator is not None:
-        flask_emit_event('position_event', current_position)
         flask_emit_event('setpoint_event', current_setpoint)
+    
+    flask_emit_event('position_event', current_position)
+        
 
 
 @socketio.on('update_setpoint', namespace='/update_status')
@@ -473,7 +475,7 @@ def read_position(data):
     else:
         position = rotctldpy.get_heading()
         current_position['azimuth'] = position[1]
-        current_position['elevation'] = 15
+        current_position['elevation'] = 15.00
         update_client_display({})
 
 if __name__ == "__main__":
