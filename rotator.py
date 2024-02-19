@@ -473,7 +473,7 @@ def read_position(data):
     else:
         position = rotctldpy.get_heading()
         current_position['azimuth'] = position[1]
-        current_position['elevation'] = _el
+        current_position['elevation'] = 15
         update_client_display({})
 
 if __name__ == "__main__":
