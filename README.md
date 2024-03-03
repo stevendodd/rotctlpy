@@ -63,3 +63,12 @@ optional arguments:
 Can be integrated with Home Assistant using REST commands - see the examples in the home-assistant directory.
 
 <img src="./static/images/HomeAssistant.png" width=200>
+
+### Install Flirc Raspberry Pi
+
+```
+sudo curl apt.flirc.tv/install.sh |bash
+```
+* Reboot
+* Start Flirc GUI `/bin/Flirc`
+* Upgrade Firmware from GUI
