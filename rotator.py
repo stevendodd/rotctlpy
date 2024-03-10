@@ -331,7 +331,7 @@ def sendIrCommand(command):
         if not p.stderr.startswith(ignoreError):
             app.logger.error(p.stderr.strip())
         else: 
-            app.logger.warning(p.stderr.strip())
+            app.logger.debug(p.stderr.strip())
 
 
 def createRotctl():
