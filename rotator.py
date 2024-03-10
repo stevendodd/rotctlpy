@@ -164,12 +164,14 @@ class ROTCTLD(object):
                         # Received updated coordinates
                         if cmd[0] == "INIT":
                             app.logger.info("Received Initialise Request")
+                            sendIrCommand("INITIAL")
         
                             # Start movement countdown
                             if self.target_pos != float(0.0):
                                 start_time = datetime.now() 
                                 start_pos = self.current_pos
                                 self.target_pos = float(0.0)
+                                direction = 0
                                           
                             # Send OK
                             connRotctldpy.sendall(b"RPRT 0\n")
@@ -450,7 +452,6 @@ def initial_rotator(data):
         current_setpoint['elevation'] = HOME_POS[1]
         rotator.initialise()
         update_client_display({})
-        sendIrCommand("INITIAL")
 
 
 @socketio.on('get_connection', namespace='/update_status')
