@@ -327,7 +327,7 @@ def sendIrCommand(command):
         
     if p.stderr:
         # Very very annoying
-        ignoreError = "[E] fl_version_compare(281): Flirc iospirit found version:n"
+        ignoreError = "[E] fl_version_compare(281): Flirc iospirit found version:"
         if not p.stderr.startswith(ignoreError):
             app.logger.error(p.stderr.strip())
         else: 
