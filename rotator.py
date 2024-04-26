@@ -164,12 +164,14 @@ class ROTCTLD(object):
                         # Received updated coordinates
                         if cmd[0] == "INIT":
                             app.logger.info("Received Initialise Request")
+                            sendIrCommand("INITIAL")
         
                             # Start movement countdown
                             if self.target_pos != float(0.0):
                                 start_time = datetime.now() 
                                 start_pos = self.current_pos
                                 self.target_pos = float(0.0)
+                                direction = 0
                                           
                             # Send OK
                             connRotctldpy.sendall(b"RPRT 0\n")
@@ -325,9 +327,11 @@ def sendIrCommand(command):
         
     if p.stderr:
         # Very very annoying
-        ignoreError = "[E] fl_version_compare(281): Flirc iospirit found version: 4.9.7 0x1DE23EB8 [release]\n"
-        if p.stderr != ignoreError:
+        ignoreError = "[E] fl_version_compare(281): Flirc iospirit found version:"
+        if not p.stderr.startswith(ignoreError):
             app.logger.error(p.stderr.strip())
+        else: 
+            app.logger.debug(p.stderr.strip())
 
 
 def createRotctl():
@@ -383,9 +387,9 @@ def flask_emit_event(event_name="none", data={}):
 
 @socketio.on('client_connected', namespace='/update_status')
 def update_client_display(data):
-    if rotator is not None:
-        flask_emit_event('position_event', current_position)
-        flask_emit_event('setpoint_event', current_setpoint)
+    flask_emit_event('setpoint_event', current_setpoint)
+    flask_emit_event('position_event', current_position)
+        
 
 
 @socketio.on('update_setpoint', namespace='/update_status')
@@ -448,7 +452,6 @@ def initial_rotator(data):
         current_setpoint['elevation'] = HOME_POS[1]
         rotator.initialise()
         update_client_display({})
-        sendIrCommand("INITIAL")
 
 
 @socketio.on('get_connection', namespace='/update_status')
@@ -470,7 +473,13 @@ def read_position(data):
     		current_position['azimuth'] = _az
     		current_position['elevation'] = _el
     		update_client_display({})
-
+    else:
+        position = rotctldpy.get_heading()
+        current_setpoint['azimuth'] = position[0]
+        current_setpoint['elevation'] = 15.00
+        current_position['azimuth'] = position[1]
+        current_position['elevation'] = 15.00
+        update_client_display({})
 
 if __name__ == "__main__":
 
